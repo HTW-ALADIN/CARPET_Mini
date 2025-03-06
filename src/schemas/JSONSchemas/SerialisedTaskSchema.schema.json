@@ -152,7 +152,93 @@
     },
     "CARPETLayouts": {
       "additionalProperties": false,
-      "properties": {},
+      "properties": {
+        "desktop": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[0-9]+$": {
+              "additionalProperties": false,
+              "properties": {
+                "height": {
+                  "type": "number"
+                },
+                "padding": {
+                  "type": "number"
+                },
+                "width": {
+                  "type": "number"
+                },
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "required": ["height", "width", "x", "y"],
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "phone": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[0-9]+$": {
+              "additionalProperties": false,
+              "properties": {
+                "height": {
+                  "type": "number"
+                },
+                "padding": {
+                  "type": "number"
+                },
+                "width": {
+                  "type": "number"
+                },
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "required": ["height", "width", "x", "y"],
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "tablet": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[0-9]+$": {
+              "additionalProperties": false,
+              "properties": {
+                "height": {
+                  "type": "number"
+                },
+                "padding": {
+                  "type": "number"
+                },
+                "width": {
+                  "type": "number"
+                },
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "required": ["height", "width", "x", "y"],
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "required": ["desktop", "phone", "tablet"],
       "type": "object"
     },
     "CodeEditorComponentState": {

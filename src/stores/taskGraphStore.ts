@@ -20,7 +20,7 @@ import type { Layout, LayoutSizes, Layouts } from "carpet-component-library";
 export type CARPETLayoutSizes = LayoutSizes & ("phone" | "tablet" | "desktop");
 
 export type CARPETLayouts = Layouts & {
-  [layoutSize in LayoutSizes]: Layout;
+  [layoutSize in CARPETLayoutSizes]: Layout;
 };
 
 export interface TaskData {
