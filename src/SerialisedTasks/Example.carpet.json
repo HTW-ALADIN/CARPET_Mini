@@ -1,6 +1,11 @@
 {
   "feedbackLevel": "none",
   "rootNode": 0,
+  "metaData": {
+    "taskId": "Example",
+    "taskName": "Example Task",
+    "taskDescription": "This is an example task"
+  },
   "nodes": {
     "0": {
       "layouts": {
@@ -46,6 +51,10 @@
             "height": 2
           }
         }
+      },
+      "state": {
+        "isCorrect": false,
+        "isValid": false
       },
       "components": {
         "0": {
@@ -228,6 +237,10 @@
           }
         }
       },
+      "state": {
+        "isCorrect": false,
+        "isValid": false
+      },
       "components": {
         "0": {
           "state": {
@@ -274,6 +287,10 @@
             "height": 5
           }
         }
+      },
+      "state": {
+        "isCorrect": false,
+        "isValid": false
       },
       "components": {
         "0": {

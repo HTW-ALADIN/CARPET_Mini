@@ -150,6 +150,11 @@
       },
       "type": "object"
     },
+    "CARPETLayouts": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
     "CodeEditorComponentState": {
       "additionalProperties": false,
       "description": "The CodeEditor-component may require state handling. This state is defined here.",
@@ -684,101 +689,6 @@
       ],
       "description": "The JSONPathExpression type is used to define a JSONPath expression."
     },
-    "LayoutSizes": {
-      "enum": ["desktop", "phone", "tablet"],
-      "type": "string"
-    },
-    "Layouts": {
-      "additionalProperties": false,
-      "properties": {
-        "desktop": {
-          "additionalProperties": false,
-          "patternProperties": {
-            "^[0-9]+$": {
-              "additionalProperties": false,
-              "properties": {
-                "height": {
-                  "type": "number"
-                },
-                "padding": {
-                  "type": "number"
-                },
-                "width": {
-                  "type": "number"
-                },
-                "x": {
-                  "type": "number"
-                },
-                "y": {
-                  "type": "number"
-                }
-              },
-              "required": ["height", "width", "x", "y"],
-              "type": "object"
-            }
-          },
-          "type": "object"
-        },
-        "phone": {
-          "additionalProperties": false,
-          "patternProperties": {
-            "^[0-9]+$": {
-              "additionalProperties": false,
-              "properties": {
-                "height": {
-                  "type": "number"
-                },
-                "padding": {
-                  "type": "number"
-                },
-                "width": {
-                  "type": "number"
-                },
-                "x": {
-                  "type": "number"
-                },
-                "y": {
-                  "type": "number"
-                }
-              },
-              "required": ["height", "width", "x", "y"],
-              "type": "object"
-            }
-          },
-          "type": "object"
-        },
-        "tablet": {
-          "additionalProperties": false,
-          "patternProperties": {
-            "^[0-9]+$": {
-              "additionalProperties": false,
-              "properties": {
-                "height": {
-                  "type": "number"
-                },
-                "padding": {
-                  "type": "number"
-                },
-                "width": {
-                  "type": "number"
-                },
-                "x": {
-                  "type": "number"
-                },
-                "y": {
-                  "type": "number"
-                }
-              },
-              "required": ["height", "width", "x", "y"],
-              "type": "object"
-            }
-          },
-          "type": "object"
-        }
-      },
-      "required": ["desktop", "phone", "tablet"],
-      "type": "object"
-    },
     "MethodReference": {
       "additionalProperties": false,
       "description": "A description of a user-facing method of a component.",
@@ -876,6 +786,19 @@
       "description": "Possible nested components of a component. The components can be nested arbitrarily.",
       "type": "object"
     },
+    "NodeState": {
+      "additionalProperties": false,
+      "properties": {
+        "isCorrect": {
+          "type": "boolean"
+        },
+        "isValid": {
+          "type": "boolean"
+        }
+      },
+      "required": ["isCorrect", "isValid"],
+      "type": "object"
+    },
     "PathComparisonConfiguration": {
       "additionalProperties": false,
       "description": "Configuration for basic comparison operations with dynamic values from paths.",
@@ -917,16 +840,19 @@
           "type": "boolean"
         },
         "layouts": {
-          "$ref": "#/definitions/Layouts"
+          "$ref": "#/definitions/CARPETLayouts"
         },
         "modal": {
           "items": {
             "$ref": "#/definitions/Modal"
           },
           "type": "array"
+        },
+        "state": {
+          "$ref": "#/definitions/NodeState"
         }
       },
-      "required": ["components", "layouts"],
+      "required": ["components", "layouts", "state"],
       "type": "object"
     },
     "SerializedBaseComponent<string>": {
@@ -1455,6 +1381,32 @@
       "additionalProperties": {},
       "type": "object"
     },
+    "TaskMetaData": {
+      "additionalProperties": false,
+      "properties": {
+        "taskCategory": {
+          "type": "string"
+        },
+        "taskDescription": {
+          "type": "string"
+        },
+        "taskId": {
+          "type": "string"
+        },
+        "taskImage": {},
+        "taskName": {
+          "type": "string"
+        },
+        "taskTags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": ["taskDescription", "taskId", "taskName"],
+      "type": "object"
+    },
     "quasar.NamedColor": {
       "anyOf": [
         {
@@ -1831,7 +1783,10 @@
       "type": "string"
     },
     "layoutSize": {
-      "$ref": "#/definitions/LayoutSizes"
+      "type": "string"
+    },
+    "metaData": {
+      "$ref": "#/definitions/TaskMetaData"
     },
     "nodes": {
       "additionalProperties": false,
@@ -1849,6 +1804,6 @@
       "$ref": "#/definitions/TaskData"
     }
   },
-  "required": ["edges", "nodes"],
+  "required": ["edges", "layoutSize", "metaData", "nodes"],
   "type": "object"
 }

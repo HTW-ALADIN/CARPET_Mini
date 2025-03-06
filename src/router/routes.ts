@@ -6,6 +6,10 @@ const routes: RouteRecordRaw[] = [
     component: () => import("pages/IndexPage.vue"),
   },
   {
+    path: "/tasks",
+    component: () => import("pages/TaskOverview.vue"),
+  },
+  {
     path: "/task/:taskName",
     name: "Task",
 
@@ -14,6 +18,14 @@ const routes: RouteRecordRaw[] = [
     // which is lazy-loaded when the route is visited.
     component: () =>
       import(/* webpackChunkName: "task" */ "pages/TaskPage.vue"),
+  },
+  {
+    path: "/workedTasks",
+    component: () => import("pages/WorkedTaskOverview.vue"),
+  },
+  {
+    path: "/settings",
+    component: () => import("pages/Settings.vue"),
   },
 
   // Always leave this as last one,

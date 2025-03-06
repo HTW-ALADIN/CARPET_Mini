@@ -26,11 +26,7 @@
 <script lang="ts" setup>
 import { onMounted, computed, watch, unref } from "vue";
 import { useRouter } from "vue-router";
-import type {
-  StoreAPI,
-  SerializedCARPETComponents,
-} from "carpet-component-library";
-import { SerialisedComponents } from "src/stores/applicationStore";
+import type { StoreAPI } from "carpet-component-library";
 
 const props = defineProps<{ storeObject: StoreAPI }>();
 
@@ -65,23 +61,9 @@ const findPrevious = (to: number) => {
   return previousId;
 };
 
-const components = computed(
-  () =>
-    <SerialisedComponents>(
-      getProperty(`$.nodes.${unref(currentNode)}.components`)
-    ),
+const validity = computed(() =>
+  getProperty(`$.nodes.${unref(currentNode)}.state`),
 );
-
-const validateComponents = () => {
-  const isCorrect = (<Array<SerializedCARPETComponents>>(
-    Object.values(unref(components))
-  )).every((component) => component.state.isCorrect);
-  const isValid = (<Array<SerializedCARPETComponents>>(
-    Object.values(unref(components))
-  )).every((component) => component.state.isValid);
-
-  return { isValid, isCorrect };
-};
 
 const controlNavigationGuard = (isValid: boolean) => {
   const navForwards: Array<HTMLElement> = Array.from(
@@ -100,27 +82,15 @@ const controlNavigationGuard = (isValid: boolean) => {
 };
 
 onMounted(() => {
-  const { isValid } = validateComponents();
-
+  const { isValid } = unref(validity);
   controlNavigationGuard(isValid);
 });
 
 watch(
-  components,
+  () => validity,
   () => {
     setTimeout(() => {
-      const { isValid, isCorrect } = validateComponents();
-      const currentNodeElement = getProperty(`$.nodes.${unref(currentNode)}`);
-      setProperty({
-        path: `$.nodes.${unref(currentNode)}.isValid`,
-        value: isValid,
-      });
-      if ("isCorrect" in currentNodeElement)
-        setProperty({
-          path: `$.nodes.${unref(currentNode)}.isCorrect`,
-          value: isCorrect,
-        });
-
+      const { isValid } = unref(validity);
       controlNavigationGuard(isValid);
     }, 50);
   },

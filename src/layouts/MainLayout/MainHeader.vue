@@ -1,5 +1,5 @@
 <template>
-  <q-header elevated class="bg-primary text-white">
+  <q-header elevated class="bg-primary text-white layoutHeader">
     <q-toolbar>
       <q-btn
         dense
@@ -16,13 +16,21 @@
         </q-avatar>
       </q-toolbar-title>
     </q-toolbar>
+
+    <q-item> <LanguageSwitcher /> </q-item>
   </q-header>
 </template>
 
 <script lang="ts" setup>
 import { useApplicationStore } from "src/stores/applicationStore";
+import LanguageSwitcher from "src/layouts/MainLayout/components/LanguageSwitcher.vue";
 
 const applicationStore = useApplicationStore();
 </script>
 
-<style></style>
+<style scoped>
+.layoutHeader {
+  display: flex;
+  flex-direction: row;
+}
+</style>

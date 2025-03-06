@@ -3,7 +3,20 @@
     <transition name="fade">
       <LoadingSpinner v-if="isLoading" />
     </transition>
-    <LOOM v-if="!isLoading" :key="currentNode" :storeObject="taskStore" />
+
+    <NavigationComponent :storeObject="taskStore"> </NavigationComponent>
+    <LOOM
+      v-if="!isLoading"
+      :key="currentNode"
+      :currentNodeId="currentNode"
+      :storeObject="taskStore"
+      :layoutSize
+      :showControlBar="true"
+      :showMiniMap="true"
+      :grid
+      :darkMode
+      @update:darkMode="applicationStore.toggleDarkMode()"
+    />
   </div>
 </template>
 
@@ -16,17 +29,32 @@ import {
   onBeforeMount,
 } from "vue";
 import { useRoute } from "vue-router";
-import LOOM from "src/components/LOOM/LOOM.vue";
+import { LOOM } from "carpet-component-library";
 import LoadingSpinner from "src/components/LoadingSpinner.vue";
 import { useTaskGraphStore } from "src/stores/taskGraphStore";
+import NavigationComponent from "src/components/NavigationComponent.vue";
+import { useApplicationStore } from "src/stores/applicationStore";
 
 const taskStore = useTaskGraphStore();
+const layoutSize = taskStore.getLayoutSize;
 const { getProperty } = taskStore;
 
 const route = useRoute();
-const currentNode = getProperty("$.currentNode");
+const currentNode = computed(() => getProperty("$.currentNode"));
 
 const isLoading = computed(() => taskStore.isLoading);
+
+const applicationStore = useApplicationStore();
+const grid = computed(() => applicationStore.SNAP_GRID);
+const darkMode = computed(() => applicationStore.darkMode);
+
+/**
+ * TODO: Implement generic actionHandler that attaches to a backend service according to a configuration
+ */
+//  const actionHandler = (event: Event, payload: object) => {
+//   console.error(event);
+//   console.error(payload);
+// };
 
 /**
  * Both onMounted and watch are required to either initialize or update the current taskName and load the task when the route changes.
@@ -55,13 +83,13 @@ const trackMouse = (event: MouseEvent) => {
   if (now - last < throttle) return;
 
   taskStore.trackMouse({
-    x: event.pageX,
-    y: event.pageY,
+    event: event,
     timestamp: now,
   });
 
   last = now;
 };
+
 onMounted(() => {
   document.addEventListener("mousemove", trackMouse);
 });

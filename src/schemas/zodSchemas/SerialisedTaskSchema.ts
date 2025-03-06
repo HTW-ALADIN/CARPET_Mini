@@ -45,7 +45,8 @@ export default z
         "validity",
       ])
       .optional(),
-    layoutSize: z.any().optional(),
+    layoutSize: z.string(),
+    metaData: z.any(),
     nodes: z.record(z.union([z.any(), z.never()])).superRefine((value, ctx) => {
       for (const key in value) {
         let evaluated = false;

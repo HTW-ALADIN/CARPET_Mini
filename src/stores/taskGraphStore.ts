@@ -1,23 +1,101 @@
 import { defineStore } from "pinia";
 import type { StateTree } from "pinia";
-import { useApplicationStore } from "./applicationStore";
-import type { AvailableTasks } from "./applicationStore";
-import type { SerialisedTask } from "./applicationStore";
+import { useTaskOverviewStore } from "src/stores/taskOverviewStore";
+import type { AvailableTasks } from "src/stores/taskOverviewStore";
+
 import { JSONPath } from "jsonpath-plus";
 
 import type {
+  SerialisedComponents,
   StoreAPI,
   JSONPathExpression,
   StoreSetterPayload,
 } from "carpet-component-library";
+import { EventCause } from "carpet-component-library";
 
-// TODO: specifiy the types of the event objects
-export interface EventLog {
-  interactionEvents: Array<object>;
-  mouseEvents: Array<object>;
-  panningEvents: Array<object>;
-  zoomingEvents: Array<object>;
-  metaData: object;
+import type { Base64 } from "src/Util/Types";
+
+import type { Layout, LayoutSizes, Layouts } from "carpet-component-library";
+
+export type CARPETLayoutSizes = LayoutSizes & ("phone" | "tablet" | "desktop");
+
+export type CARPETLayouts = Layouts & {
+  [layoutSize in LayoutSizes]: Layout;
+};
+
+export interface TaskData {
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+  [key: string]: any;
+}
+
+export interface Hints {
+  active: boolean;
+  current: number;
+  descriptions: Array<string>;
+}
+
+export interface Modal {
+  trigger: {
+    type: "success";
+  };
+  content: {
+    header: string;
+    body: string;
+    footer: {
+      buttons: Array<{
+        type: "close" | "route";
+        label: string;
+        parameters?: {
+          route: string;
+        };
+      }>;
+    };
+  };
+}
+export type Modals = Array<Modal>;
+
+export interface NodeState {
+  isValid: boolean;
+  isCorrect: boolean;
+}
+
+export interface SerialisedNode {
+  layouts: CARPETLayouts;
+  components: SerialisedComponents;
+  state: NodeState;
+  hints?: Hints;
+  modal?: Modals;
+  isValid?: boolean;
+  isCorrect?: boolean;
+}
+export interface SerialisedNodes {
+  [id: number]: SerialisedNode;
+}
+
+export interface TaskMetaData {
+  taskId: string;
+  taskName: string;
+  taskDescription: string;
+  taskImage?: Base64;
+  taskCategory?: string;
+  taskTags?: Array<string>;
+}
+
+export interface SerialisedTask {
+  nodes: SerialisedNodes;
+  edges: {
+    [nodeId: number]: Array<number>;
+  };
+  metaData: TaskMetaData;
+  feedbackLevel?:
+    | "none"
+    | "validity"
+    | "correctness"
+    | "unpromptedHints"
+    | "unpromptedFeedback";
+  layoutSize: LayoutSizes;
+  rootNode?: number;
+  taskData?: TaskData;
 }
 
 export interface CARPETStoreAPI extends StoreAPI {
@@ -25,12 +103,27 @@ export interface CARPETStoreAPI extends StoreAPI {
   [key: string]: any;
 }
 
+export interface LoggedInteractionEvent {
+  timestamp: number;
+  payload: StoreSetterPayload;
+}
+
+export interface LoggedMouseEvent {
+  timestamp: number;
+  event: Event | MouseEvent;
+}
+
+export interface EventLog {
+  interactionEvents: Array<LoggedInteractionEvent>;
+  mouseEvents: Array<LoggedMouseEvent>;
+}
+
 export interface TaskGraphState extends SerialisedTask {
   currentTask: string | null;
   isLoading: boolean;
   currentNode: number | null;
   previousNode: number | null;
-  replayLog: EventLog;
+  eventLog: EventLog;
 }
 
 export type TaskGraphStateKey = keyof TaskGraphState;
@@ -41,23 +134,31 @@ export type TaskGraphStateKey = keyof TaskGraphState;
  */
 export const useTaskGraphStore = defineStore("taskGraphStore", {
   state: (): TaskGraphState => ({
+    /**
+     * Tracked properties. (Set via setProperty)
+     */
     currentTask: null,
     isLoading: false,
     currentNode: null,
     previousNode: null,
-    taskData: {},
-    replayLog: {
-      interactionEvents: [],
-      mouseEvents: [],
-      panningEvents: [],
-      zoomingEvents: [],
-      metaData: {},
+    metaData: {
+      taskId: "",
+      taskName: "",
+      taskDescription: "",
     },
+    taskData: {},
     feedbackLevel: "none",
     layoutSize: "desktop",
     rootNode: 0,
     nodes: {},
     edges: {},
+    /**
+     * Untracked properties.
+     */
+    eventLog: {
+      interactionEvents: [],
+      mouseEvents: [],
+    },
   }),
   getters: {
     getPropertyFromPath: (state) => (path: JSONPathExpression) => {
@@ -70,6 +171,9 @@ export const useTaskGraphStore = defineStore("taskGraphStore", {
     },
     getCurrentNode: (state) => {
       return state.nodes[state.currentNode as number];
+    },
+    getLayoutSize: (state) => {
+      return <LayoutSizes>state.layoutSize;
     },
   },
   actions: {
@@ -86,8 +190,11 @@ export const useTaskGraphStore = defineStore("taskGraphStore", {
           if (subState[splitPath[depth]] != value) {
             subState[splitPath[depth]] = value;
 
-            // Log the state change in the replayLog
-            this.replayLog.interactionEvents.push(payload);
+            // Sideeffect: Log the state change in the current event log of the user
+            this.eventLog.interactionEvents.push({
+              timestamp: new Date().getTime(),
+              payload,
+            });
 
             /**
              * Log the state change in development mode.
@@ -111,24 +218,32 @@ export const useTaskGraphStore = defineStore("taskGraphStore", {
       return this.getPropertyFromPath(path);
     },
     fetchTaskGraph() {
-      const applicationStore = useApplicationStore();
-      const tasks = applicationStore.tasks;
+      const taskOverviewStore = useTaskOverviewStore();
+      const tasks = taskOverviewStore.tasks;
       const currentTask = tasks[this.currentTask as AvailableTasks];
       /**
        * Set properites of currentTask via setProperty to include them in the EventLog.
        */
       for (const [key, value] of Object.entries(currentTask)) {
-        this.setProperty({ path: `$.${key}`, value: value });
+        this.setProperty({
+          path: `$.${key}`,
+          value: value,
+          metadata: { cause: EventCause.Store },
+        });
       }
-      this.setProperty({ path: "$.currentNode", value: currentTask.rootNode });
-    },
-
-    trackMouse(mouseEvent: { x: number; y: number; timestamp: number }) {
-      this.replayLog.mouseEvents.push(mouseEvent);
+      this.setProperty({
+        path: "$.currentNode",
+        value: currentTask.rootNode,
+        metadata: { cause: EventCause.Store },
+      });
     },
 
     toggleLoading() {
       this.isLoading = !this.isLoading;
+    },
+
+    trackMouse(payload: { event: Event; timestamp: number }) {
+      this.eventLog.mouseEvents.push(payload);
     },
   },
 });
