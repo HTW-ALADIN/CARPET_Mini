@@ -1,8 +1,8 @@
 <template>
   <q-page class="taskPage row items-center justify-evenly">
-    <TaskListLayout v-bind="{ grid: { cards: taskCards } }">
+    <TaskListLayout v-bind="{ grid: { cards: workedTaskCards } }">
       <template #card="card">
-        <TaskCard v-bind="card"></TaskCard>
+        <WorkedTaskCard v-bind="<WorkedTaskCardProps>card"></WorkedTaskCard>
       </template>
     </TaskListLayout>
   </q-page>
@@ -12,28 +12,45 @@
 import { computed } from "vue";
 import { useTaskOverviewStore } from "src/stores/taskOverviewStore";
 import { useI18n } from "vue-i18n";
-import type { TaskGridButton } from "src/layouts/TaskListLayout/TaskCard.vue";
-import TaskCard from "src/layouts/TaskListLayout/TaskCard.vue";
+import type { TaskGridButton } from "src/layouts/TaskListLayout/CardButton";
+import WorkedTaskCard from "src/layouts/TaskListLayout/WorkedTaskCard.vue";
+import type { WorkedTaskCard as WorkedTaskCardProps } from "src/layouts/TaskListLayout/WorkedTaskCard.vue";
 
 import TaskListLayout from "src/layouts/TaskListLayout/TaskListLayout.vue";
+import { UUID } from "crypto";
+import type { WorkedTaskMetaData } from "src/stores/userStore";
 
 const taskOverviewStore = useTaskOverviewStore();
 
 const { t } = useI18n();
-const startTaskString = computed(() => t("startTask"));
+const resumeTaskString = computed(() => t("resumeTask"));
+const replayTaskString = computed(() => t("replayTask"));
+const shareTaskString = computed(() => t("shareTask"));
 
-const { tasks } = taskOverviewStore;
-const taskCards = Object.entries(tasks).map(([taskId, taskSpec]) => {
-  const { metaData } = taskSpec;
-  const buttons: Array<TaskGridButton> = [
-    {
-      route: `/task/${taskId}`,
-      label: startTaskString,
-      icon: "arrow_outward",
-    },
-  ];
-  return { taskId, buttons, ...metaData };
-});
+const { workedTasks } = taskOverviewStore;
+const workedTaskCards = Object.entries(workedTasks).map(
+  ([workedTaskId, taskSpec]) => {
+    const metaData: WorkedTaskMetaData = taskSpec.metaData;
+    const buttons: Array<TaskGridButton> = [
+      {
+        route: `/task/${metaData.taskMetaData.taskId}/${workedTaskId}`,
+        tooltip: resumeTaskString,
+        icon: "arrow_outward",
+      },
+      {
+        route: `/workedTask/${workedTaskId}`,
+        tooltip: replayTaskString,
+        icon: "visibility",
+      },
+      {
+        modal: {},
+        tooltip: shareTaskString,
+        icon: "share",
+      },
+    ];
+    return { id: workedTaskId as UUID, buttons, metaData: metaData };
+  },
+);
 </script>
 
 <style scoped></style>

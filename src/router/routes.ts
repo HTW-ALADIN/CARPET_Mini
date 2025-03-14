@@ -10,7 +10,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import("pages/TaskOverview.vue"),
   },
   {
-    path: "/task/:taskName",
+    path: "/task/:taskName/:logId?",
     name: "Task",
 
     // route level code-splitting
@@ -22,6 +22,16 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/workedTasks",
     component: () => import("pages/WorkedTaskOverview.vue"),
+  },
+  {
+    path: "/workedTask/:id",
+    name: "WorkedTask",
+
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () =>
+      import(/* webpackChunkName: "workedTask" */ "pages/ReplayPage.vue"),
   },
   {
     path: "/settings",

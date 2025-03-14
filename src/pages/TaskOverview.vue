@@ -2,7 +2,7 @@
   <q-page class="taskPage row items-center justify-evenly">
     <TaskListLayout v-bind="{ grid: { cards: taskCards } }">
       <template #card="card">
-        <TaskCard v-bind="card"></TaskCard>
+        <TaskCard v-bind="<TaskCardProps>card"></TaskCard>
       </template>
     </TaskListLayout>
   </q-page>
@@ -12,8 +12,9 @@
 import { computed } from "vue";
 import { useTaskOverviewStore } from "src/stores/taskOverviewStore";
 import { useI18n } from "vue-i18n";
-import type { TaskGridButton } from "src/layouts/TaskListLayout/TaskCard.vue";
+import type { TaskGridButton } from "src/layouts/TaskListLayout/CardButton";
 import TaskCard from "src/layouts/TaskListLayout/TaskCard.vue";
+import type { TaskCard as TaskCardProps } from "src/layouts/TaskListLayout/TaskCard.vue";
 
 import TaskListLayout from "src/layouts/TaskListLayout/TaskListLayout.vue";
 
@@ -28,7 +29,7 @@ const taskCards = Object.entries(tasks).map(([taskId, taskSpec]) => {
   const buttons: Array<TaskGridButton> = [
     {
       route: `/task/${taskId}`,
-      label: startTaskString,
+      tooltip: startTaskString,
       icon: "arrow_outward",
     },
   ];

@@ -6,4 +6,13 @@ export default {
   taskGridFilter: "Category | categories",
   taskGridSearch: "Search",
   workedTask: "Worked Task | Worked Tasks",
+  resumeTask: "Resume solution attempt",
+  replayTask: "View solution attempt",
+  shareTask: "Share solution attempt",
+  stopReplay: "Stop replay",
+  annotateReplay: "Annotate replay",
+  replaySettings: "Replay settings",
+  fastForwardEventlessSections: "Fast forward eventless sections",
+  endAnnotation: "End annotation",
+  addAnnotation: "Add annotation",
 };

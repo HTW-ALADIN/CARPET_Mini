@@ -178,7 +178,20 @@ export const useTaskGraphStore = defineStore("taskGraphStore", {
   },
   actions: {
     setCurrentTask(taskName: string) {
-      this.currentTask = taskName;
+      this.setProperty({
+        path: `$.currentTask`,
+        value: taskName,
+        metadata: { cause: EventCause.Store },
+      });
+    },
+    recordMutation(payload: StoreSetterPayload) {
+      /**
+       * TODO: Store in the backend via webSocket.
+       */
+      this.eventLog.interactionEvents.push({
+        timestamp: new Date().getTime(),
+        payload,
+      });
     },
     setProperty(payload: StoreSetterPayload) {
       const { path, value } = payload;
@@ -191,11 +204,10 @@ export const useTaskGraphStore = defineStore("taskGraphStore", {
             subState[splitPath[depth]] = value;
 
             // Sideeffect: Log the state change in the current event log of the user
-            this.eventLog.interactionEvents.push({
-              timestamp: new Date().getTime(),
-              payload,
-            });
-
+            // defaults to: undefined === true
+            if (!payload.metadata?.record === true) {
+              this.recordMutation(payload);
+            }
             /**
              * Log the state change in development mode.
              */
@@ -244,6 +256,27 @@ export const useTaskGraphStore = defineStore("taskGraphStore", {
 
     trackMouse(payload: { event: Event; timestamp: number }) {
       this.eventLog.mouseEvents.push(payload);
+    },
+
+    rehydrate(logId: string) {
+      this.$state.isLoading = true;
+      /**
+       * Mocked getter for the eventlog.
+       * TODO: Couple to the backend.
+       */
+
+      const taskOverviewStore = useTaskOverviewStore();
+      const workedTask = taskOverviewStore.workedTasks[logId];
+
+      Object.entries(workedTask.lastState).forEach(([key, value]) => {
+        this.setProperty({
+          path: `$.${key}`,
+          value,
+          metadata: { cause: EventCause.Store },
+        });
+      });
+
+      this.$state.isLoading = false;
     },
   },
 });

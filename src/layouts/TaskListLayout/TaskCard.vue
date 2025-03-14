@@ -19,31 +19,18 @@
 
     <q-separator />
 
-    <q-card-actions class="taskCard__footer">
-      <div v-for="(button, i) in props.buttons" :key="i">
-        <router-link :to="button.route">
-          <q-btn flat color="primary" :icon="button.icon">
-            {{ button.label }}
-          </q-btn>
-        </router-link>
-      </div>
-    </q-card-actions>
+    <TaskCardFooter :buttons="props.buttons"> </TaskCardFooter>
   </q-card>
 </template>
 
 <script setup lang="ts">
-import type { ComputedRef } from "vue";
 import type { TaskMetaData } from "src/stores/taskGraphStore";
+import type { TaskGridButton } from "src/layouts/TaskListLayout/CardButton";
+import TaskCardFooter from "src/layouts/TaskListLayout/TaskCardFooter.vue";
 
 export interface TaskCard extends TaskMetaData {
-  taskId: string;
+  id: string;
   buttons: Array<TaskGridButton>;
-}
-
-export interface TaskGridButton {
-  route: string;
-  label: string | ComputedRef<string>;
-  icon?: string;
 }
 
 const props = defineProps<TaskCard>();
@@ -62,11 +49,5 @@ const props = defineProps<TaskCard>();
 .taskCard__body-description {
 }
 .taskCard__body-image {
-}
-
-.taskCard__footer {
-  display: flex;
-  justify-content: start;
-  align-items: center;
 }
 </style>

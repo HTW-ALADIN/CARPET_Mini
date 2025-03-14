@@ -1,12 +1,7 @@
 <template>
   <div class="task">
-    <transition name="fade">
-      <LoadingSpinner v-if="isLoading" />
-    </transition>
-
     <NavigationComponent :storeObject="taskStore"> </NavigationComponent>
     <LOOM
-      v-if="!isLoading"
       :key="currentNode"
       :currentNodeId="currentNode"
       :storeObject="taskStore"
@@ -28,12 +23,12 @@ import {
   onBeforeUnmount,
   onBeforeMount,
 } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, onBeforeRouteLeave } from "vue-router";
 import { LOOM } from "carpet-component-library";
-import LoadingSpinner from "src/components/LoadingSpinner.vue";
 import { useTaskGraphStore } from "src/stores/taskGraphStore";
-import NavigationComponent from "src/components/NavigationComponent.vue";
 import { useApplicationStore } from "src/stores/applicationStore";
+import { useUserStore } from "src/stores/userStore";
+import NavigationComponent from "src/components/NavigationComponent.vue";
 
 const taskStore = useTaskGraphStore();
 const layoutSize = taskStore.getLayoutSize;
@@ -42,11 +37,19 @@ const { getProperty } = taskStore;
 const route = useRoute();
 const currentNode = computed(() => getProperty("$.currentNode"));
 
-const isLoading = computed(() => taskStore.isLoading);
-
 const applicationStore = useApplicationStore();
 const grid = computed(() => applicationStore.SNAP_GRID);
 const darkMode = computed(() => applicationStore.darkMode);
+
+const userStore = useUserStore();
+
+/**
+ * TODO: Gradually save the task state to the backend. Only fallback to local storage if the backend is not available.
+ */
+onBeforeRouteLeave((from, to, next) => {
+  userStore.saveWorkedTask();
+  next();
+});
 
 /**
  * TODO: Implement generic actionHandler that attaches to a backend service according to a configuration
@@ -62,8 +65,14 @@ const darkMode = computed(() => applicationStore.darkMode);
  * See: https://router.vuejs.org/guide/essentials/dynamic-matching.html#Reacting-to-Params-Changes
  */
 onBeforeMount(() => {
+  window.addEventListener("beforeunload", userStore.saveWorkedTask);
+
   taskStore.setCurrentTask(route.params.taskName as string);
-  taskStore.fetchTaskGraph();
+  if (route.params.logId) {
+    taskStore.rehydrate(<string>route.params.logId);
+  } else {
+    taskStore.fetchTaskGraph();
+  }
 });
 watch(
   () => route.params.taskName,
@@ -95,13 +104,15 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener("beforeunload", userStore.saveWorkedTask);
+
   document.removeEventListener("mousemove", trackMouse);
 });
 </script>
 
 <style scoped>
 .task {
-  height: calc(100vh - 50px);
+  height: 100%; /*calc(100vh - 50px);*/
   width: 100%;
 }
 

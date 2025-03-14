@@ -1,10 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { UUID } from "crypto";
-import { EventLog } from "./taskGraphStore";
 
 import serialisedTaskSchema from "src/schemas/zodSchemas/SerialisedTaskSchema";
-import { TaskMetaData } from "src/stores/taskGraphStore";
 
 /**
  * TODO: Dynamically load the tasks from the backend, once the interface is defined.
@@ -29,23 +26,12 @@ const staticTasks = {
   Example14: serialisedTaskSchema.parse(ExampleTask),
 };
 
-export interface WorkedTask {
-  metaData: {
-    taskStatus: Array<
-      | "started"
-      | "completed"
-      | "annotated"
-      | "replayed"
-      | "shared"
-      | "corrected"
-    >;
-    sucessStatus: "correct" | "incorrect";
-    sharedWith: Array<UUID>;
-    date: [number, number]; // [timestamp - started, timestamp - last interaction]
-    taskMetaData: TaskMetaData;
-  };
-  eventLog: EventLog;
-}
+import workedTask from "src/workedTasks/12312.json";
+import { WorkedTask } from "./userStore";
+import { UUID } from "crypto";
+const staticWorkedTasks: { [key: UUID | string]: WorkedTask } = {
+  "eb994554-82f2-4358-8cda-a88355498847": workedTask as unknown as WorkedTask,
+};
 
 /**
  * The available tasks in the current application.
@@ -60,6 +46,12 @@ export const useTaskOverviewStore = defineStore("taskOverviewStore", () => {
   const tasks = ref(staticTasks);
 
   /**
+   * (Mocked) Getter for reading all serialised tasks from the file system.
+   * @returns A dictionary of tasks, where the key is the task name and the value is the serialised task.
+   */
+  const workedTasks = ref(staticWorkedTasks);
+
+  /**
    * (Mocked) Getter for the task categories.
    * @returns An array of task categories.
    */
@@ -68,5 +60,6 @@ export const useTaskOverviewStore = defineStore("taskOverviewStore", () => {
   return {
     tasks,
     taskCategories,
+    workedTasks,
   };
 });
